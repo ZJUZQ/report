@@ -1,0 +1,344 @@
+\documentclass[UTF8]{ctexart}
+
+\CTEXsetup[format={\LARGE\bf}]{part} %设置标题左对齐
+\CTEXsetup[format={\Large\bf}]{section} %设置标题左对齐
+\CTEXsetup[format={\large\bf\raggedright}]{subsection} %设置二级标题左对齐
+\CTEXsetup[format={\normalsize\bf\raggedright}]{subsubsection} %设置三级标题左对齐
+
+\setlength\parskip{4pt} %设置段与段之间的垂直距离
+
+\usepackage{amsmath} % 美国数学会（American Mathematical Society）开发的数学公式宏包
+\usepackage{amsfonts} % 数学字母
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{geometry}
+\usepackage{color}
+\usepackage{latexsym}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{verbatim}  %多行注释宏包， 然后在待注释的部分上加入 \begin{comment} ... \end{comment}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+    language=C,
+    numbers=left, 
+    numberstyle=\tiny,
+    basicstyle=\small,
+    keywordstyle= \color{ blue!100},
+    commentstyle= \color{red!100}, 
+    frame=shadowbox, % 阴影效果
+    rulesepcolor= \color{ red!20!green!20!blue!20} ,
+    escapeinside=``, % 英文分号中可写入中文
+    xleftmargin=2em,xrightmargin=2em, aboveskip=1em,
+    framexleftmargin=2em
+} 
+
+\geometry{left = 2 cm, right = 2 cm, top = 2 cm, bottom = 2 cm} %页边距设置
+
+\title{组会报告：视觉SLAM（1）}
+\author{周强}
+\date{\today}
+
+
+%----------------------------------------**常用功能模板**--------------------------------------------------------------%
+\begin{comment}
+
+%------------------------------------------文本排列----------------------------------------------------------%
+{itemize}命令对文本进行简单的排列，不是采用序号，而是实心圆点符号。
+这个命令需要和\item配合使用。作为演示，输入如下代码：
+\begin{itemize}
+	\item The direction $\angle {\bf g}$ of the gradient vector ${\bf g}$ is the direction in the N-D space along which the function $f({\bf x})$ increases  most rapidly.
+	\item The magnitude $|{\bf g}|$ of the gradient ${\bf g}$ is the rate of the  increment. 
+\end{itemize}
+%--------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------文本和公式添加颜色----------------------------------------------------------%
+导言区添加 \usepackage{color}
+1） 对文本添加颜色：
+	{ \color{red}{I love you} }
+2) 对公式添加颜色：
+	{ \color{red}{$a = b + c$} }
+%---------------------------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------引用文献----------------------------------------------------------%
+% 使用jabref管理文献
+打开方式： $ java -jar JabRef-3.8.2.jar
+
+% 第一步： 新建一个空白文档，比如 articles.bib ,该文档与当前.tex文件放在同一个目录下。 在文档里添加引用的文章的条目，比如
+@ARTICLE{Bouguet00pyramidalimplementation,
+    author = {Jean-yves Bouguet},
+    title = {Pyramidal implementation of the Lucas Kanade feature tracker},
+    journal = {Intel Corporation, Microprocessor Research Labs},
+    year = {2000}
+}
+% 第二步：在文档最后，\end{document}之前，添加如下
+	% bibliographystyle {plain}
+	% bibliography {articles}
+
+% 第三步： 文献中引用，如
+	% \cite{Bouguet00pyramidalimplementation}
+
+% 第四部： 按如下顺序编译四次： XeLaTex,  BibTex,  XeLaTex, XeLaTex 
+%-----------------------------------------------------------------------------------------------------------------%
+
+%---------------------------------------------------- 插入矩阵-------------------------------------------------------%
+\begin{matrix}	%不带括号
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{matrix}
+
+\begin{bmatrix}	%带中括号
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{bmatrix}
+
+\begin{vmatrix}	%两边竖线
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{vmatrix}
+
+\begin{Vmatrix}	%两边双竖线
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{Vmatrix}
+
+\begin{pmatrix}	%带圆括号
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{pmatrix}
+
+\begin{Bmatrix}	%带大括号
+	a_1	&	a_2	\\
+	a_3	&	a_4
+\end{Bmatrix}
+%--------------------------------------------------------------------------------------------------------------------------%
+
+%------------------ 插入公式：带自动编号和引用标签-------------------------------------------------------%
+\begin{equation}
+	y_1^T E y_2 = 0	\label{eq:essential}
+\end{equation}
+%--------------------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------- 插入多行公式: 单个标号-------------------------------------------------------------------------------%
+%split环境用在equation数学环境里面，可以把一个数学公式拆分成多行，并且支持对齐
+\begin{equation}
+	\begin{split}
+		t_1^{\land} &= U \; R_Z(\frac{\pi}{2}) \; \sum \; U^T, \quad R_1 = U \; R_Z^T(\frac{\pi}{2}) \;  V^T \\
+		t_2^{\land} &= U \; R_Z(-\frac{\pi}{2}) \; \sum \; U^T, \quad R_2 = U \; R_Z^T(-\frac{\pi}{2}) \;  V^T
+	\end{split}
+\end{equation}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------- 插入多行公式: 多个标号-------------------------------------------------------------------------------%
+\begin{align} \\默认左右对齐等
+	R_{pos} &= R R_{pos}	\\
+	t_{pos} &= t_{pos} + t R_{pos}
+\end{align}
+
+\begin{gather} \\默认居中对齐
+	R_{pos} &= R R_{pos}	\\
+	t_{pos} &= t_{pos} + t R_{pos}
+\end{gather}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%------------------ 插入图片模板----------------------------------------------------------------------------------%
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=8cm]{loca_control_plan.png}}
+	\caption{攀爬机器人工作大纲（初拟）}
+	\label{fig:loca_ctrl_plan}
+\end{figure}
+
+图的引用： \ref{fig:loca_ctrl_plan} 
+%--------------------------------------------------------------------------------------------------------------------------%
+
+
+%--------------------------- 插入并排图片模板----------------------------------------------------------------------------------%
+并排摆放，共享标题
+当我们需要两幅图片并排摆放，并共享标题时，可以在 figure 环境中
+使用两个 \includegraphics 命令。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics{left}
+	\includegraphics{right}
+	\caption{反清复明}
+\end{figure}
+%--------------------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------插入并排图片模板：各含标题---------------------------------------------------------%
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=6cm]{./figures/edge_Sobel.png}
+		\caption{edge\_Sobel}
+	\end{minipage}
+	\qquad	\qquad 
+	\begin{minipage}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=6cm]{./figures/edge_Prewitt.png}
+		\caption{edge\_Prewitt}
+	\end{minipage}
+	% 空格，另起一行
+
+	\begin{minipage}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=6cm]{./figures/edge_DoG.png}
+		\caption{edge\_DoG}
+	\end{minipage}
+	\qquad	\qquad 
+	\begin{minipage}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=6cm]{./figures/edge_canny.png}
+		\caption{edge\_canny}
+	\end{minipage}
+\end{figure}
+%----------------------------------------------------------------------------------------------------------------------------------%
+
+%---------------------------------------------------插入python 高亮代码：-------------------------------------------------------------------------------%
+首先： https://github.com/olivierverdier/python-latex-highlighting
+	将下载的pythonhighlight.sty放到你的.tex文件所在的目录下
+
+The package is loaded by the following line:
+
+然后： \usepackage{pythonhighlight}
+
+最后，使用方法如下：
+\begin{python}
+def f(x):
+    return x
+\end{python}
+%----------------------------------------------------------------------------------------------------------------------------------%
+
+
+%---------------------------------------------------插入C++ 高亮代码：-------------------------------------------------------------------------------%
+首先在引言区添加：
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+    language=C++,
+    numbers=left, 
+    numberstyle=\tiny,
+    basicstyle=\small,
+    keywordstyle= \color{ blue!100},
+    commentstyle= \color{red!100}, 
+    frame=shadowbox, % 阴影效果
+    rulesepcolor= \color{ red!20!green!20!blue!20} ,
+    escapeinside=``, % 英文分号中可写入中文
+    xleftmargin=2em,xrightmargin=2em, aboveskip=1em,
+    framexleftmargin=2em
+} 
+
+然后在正文：
+\begin{lstlisting}
+	代码
+\end{lstlisting}
+%----------------------------------------------------------------------------------------------------------------------------------%
+
+
+%------------------ 插入表格模板----------------------------------------------------------------------------------%
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{l}
+		\hline
+		\textbf{Algorithm CNN} $(img)$\textbf{:}	\\
+		\qquad	\textbf{return} $direction$	\\
+		\\
+		\hline
+		\\
+		\textbf{Algorithm Division\_estimate} $(img)$\textbf{:}	\\
+		\qquad	$U = 180^\circ, L = -180^\circ$		\\
+		\qquad	\textbf{while} $(U - L > 1^\circ)$	\textbf{do}	\\
+		\qquad \qquad	$M = (U + L) / 2$	\\
+		\qquad \qquad	$img\_r = \mathbf{Rotate\_image} (img, 90^\circ - M)$	\\
+		\qquad \qquad	$direction = \mathbf{CNN} (img\_r)$	\\
+		\qquad \qquad	\textbf{if} $(direction == Up)$ 	\\
+		\qquad \qquad \qquad	 $U = M$ 	\\
+		\qquad \qquad	\textbf{else} 	\\
+		\qquad \qquad \qquad $L = M$ 	\\
+		\qquad	\textbf{end while}		\\
+		\qquad \textbf{return} $(U + L) / 2$	\\	
+		\hline
+	\end{tabular}
+	\caption{攀爬机器人方向角测量算法}
+	\label{tbl:algorithm_1}
+\end{table}
+表格的引用： \ref{tbl:algorithm_1} 
+控制表格宽度： \begin{tabular}{|p{1cm}|p{2cm}|p{3cm}|}
+%--------------------------------------------------------------------------------------------------------------------------%
+
+
+%------------------------------------------------  绘制长直线  -------------------------------------------------------------------%
+\rule[水平高度]{长度}{粗细}
+
+例如：
+\rule[0.25\baselineskip]{\textwidth}{1pt}
+\rule[-10pt]{14.3cm}{0.05em}
+
+\baselineskip是单位 距离下面的距离
+%--------------------------------------------------------------------------------------------------------------------------%
+
+
+\end{comment}
+%----------------------------------------**常用功能模板**--------------------------------------------------------------%
+
+\begin{document}
+\maketitle %实际输出论文标题;
+
+\section{faster rcnn 简介}
+R-CNN是目标检测领域中十分经典的方法，相比于传统的手工特征，R-CNN将卷积神经网络引入，用于提取深度特征，后接一个分类器判决搜索区域是否包含目标及其置信度，取得了较为准确的检测结果。
+
+Fast R-CNN和Faster R-CNN是R-CNN的升级版本，在准确率和实时性方面都得到了较大提升。在Fast R-CNN中，首先需要使用Selective Search的方法提取图像的候选目标区域(Proposal)。
+
+最新提出的Faster R-CNN模型则引入了RPN网络(Region Proposal Network)，将Proposal的提取部分嵌入到内部网络，实现了卷积层特征共享，后接的Fast R-CNN则基于RPN提取的Proposal做进一步的分类判决和回归预测，因此，整个网络模型可以完成端到端的检测任务，而不需要先执行特定的候选框搜索算法，显著提升了算法模型的实时性。
+
+
+\subsection{faster rcnn 模型概述}
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=8cm]{images/faster_rcnn_network.png}}
+	\caption{faster rcnn}
+	\label{fig:faster_rcnn}
+\end{figure}
+
+图的引用： \ref{fig:loca_ctrl_plan} 
+Faster R-CNN模型主要由两个模块组成：RPN候选框提取模块和Fast R-CNN检测模块，如上图\ref{fig:faster_rcnn}所示，又可细分为4个部分：backbone，RPN，RoI Pooling，Classification and Regression。
+\begin{itemize}
+\item[*] Backbone: 包括一系列卷积(Conv + Relu)和池化(Pooling)操作，用于提取图像的特征(feature maps)，一般直接使用现有的经典网络模型resnet, inception或者VGG16，而且backbone的权值参数为RPN和Fast RCNN所共享，这也是能够加快训练过程、提升模型实时性的关键所在。
+\item[*] Region Proposal Network: RPN网络用于生成区域候选框Proposal，基于网络模型引入的多尺度Anchor，通过Softmax对anchors属于目标(foreground)还是背景(background)进行分类判决，并使用Bounding Box Regression对anchors进行回归预测，获取Proposal的精确位置，并用于后续的目标识别与检测。
+\item[*] RoI Pooling: 综合卷积层特征feature maps和候选框proposal的信息，将propopal在输入图像中的坐标映射到最后一层feature map(conv5-3)中，对feature map中的对应区域进行池化操作，得到固定大小(7x7)输出的池化结果，并与后面的全连接层相连。
+\item[*] Classification and Regression: 全连接层后接两个子连接层——分类层(cls)和回归层(reg)，分类层用于判断Proposal的类别，回归层则通过bounding box regression预测Proposal的准确位置。
+\end{itemize}
+
+\section{训练样本}
+1. 首先，我是从爬壁机器人的攀爬视频的解帧图片序列中挑选一些图片作为样本图片，使用标注工具获得每个样本的ground truth标注，保存为xml格式。
+
+2. 我只标注了大概30张图片，这么少的图片用来训练是远远不够的，所以必须要做一些样本增强，提高训练样本的数量。目前使用的样本增强的方式是：random-lr-flip, random-up-flip, random-translate。后续准备把random-rotate也加进去。
+
+3. 对于每张含有人工标定ground truth的图像，考虑一张图像上所有anchors:
+\begin{itemize}
+\item[*] 首先过滤掉超出图像边界的anchors
+\item[*] 对每个标定的ground truth，与其重叠比例IoU最大的anchor记为正样本，这样可以保证每个ground truth至少对应一个正样本anchor
+\item[*] 对每个anchor，如果其与某个ground truth的重叠比例IoU大于0.7，则记为正样本(目标)；如果小于0.3，则记为负样本(背景)
+\item[*] 再从已经得到的正负样本中随机选取256个anchors组成一个minibatch用于训练，而且正负样本的比例为1:1,；如果正样本不够，则补充一些负样本以满足256个anchors用于训练，反之亦然。
+\end{itemize}
+
+\section{初步结果}
+下面图片\ref{fig:demo_test}是初步训练10000步的结果，虽然还没有收敛，但是从效果来看，基于faster-rcnn的爬壁机器人的定位方法还是可行的。
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=8cm]{images/result_demo.png}}
+	\caption{test}
+	\label{fig:demo_test}
+\end{figure}
+
+\section{后续工作}
+1. 继续训练，看收敛后的效果和精度；
+2. 扩从样本，进一步提高精度；
+3. 使用ssd, mobile-net等轻量化backbone，简化模型，提高实时性；
+4. 增加FPN，解决机器人尺度较小的问题；
+
+
+\bibliographystyle{plain}
+\bibliography{articles}
+\end{document}
